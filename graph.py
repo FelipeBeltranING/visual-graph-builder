@@ -36,3 +36,12 @@ class Graph():
 
     def addEdge(self, newEdge : Edge):
         self.edges.append(newEdge) 
+
+    def printGraph(self):
+        print(f"Nodes: {len(self.graph.nodes)}, Aristas: {len(self.graph.edges)}, Directed:", "yes" if self.graph.isDirected else "no")
+        print("Nodes:")
+        for node in self.nodes:
+            print(node.name)
+        print("Edges:")
+        for edge in self.edges:
+            print(f"({edge.source.name},{edge.target.name}, weight: {edge.weight}")
