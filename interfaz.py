@@ -42,9 +42,9 @@ class App:
 
     def createTextBox(self):
         self.txtInfo = scrolledtext.ScrolledText(
-            self.leftFrame, width=100, height=20, font=("Segoe UI", 12)
+            self.leftFrame, width=50, height=30, font=("Segoe UI", 15)
             )
-        self.txtInfo.pack(expand=True, padx=10, pady=10)
+        self.txtInfo.pack(padx=10, pady=10)
     
     def uploadMatrix(self):
         self.filepath = filedialog.askopenfilename(
