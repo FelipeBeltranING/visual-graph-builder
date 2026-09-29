@@ -18,6 +18,9 @@ def drawGraph(graph, frame):
     pos = nx.spring_layout(G)
     nx.draw(G,pos,ax=ax,with_labels=True, node_color="#2d7ff9",font_color="black", node_size=800, arrows=graph.isDirected)
 
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax, font_size=10)
+
     for widget in frame.winfo_children():
         widget.destroy()
     
