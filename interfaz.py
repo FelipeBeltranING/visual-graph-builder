@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
 import graphBuilder
+import graphVisualizer
 
 class App:
     def __init__(self, root):
@@ -10,7 +11,7 @@ class App:
         self.filepath = None
 
         root.title("Graph Builder")
-        root.geometry("1920x1080")
+        root.geometry("2048x1080")
 
         self.createLayout()
         self.createButtons()
@@ -22,25 +23,28 @@ class App:
 
         self.bottomFrame = tk.Frame(self.root)
         self.bottomFrame.pack(side="bottom", fill="both", expand=True)
+        
+        self.bottomFrame.columnconfigure(0, weight=1)
+        self.bottomFrame.columnconfigure(1, weight=1)
+        self.bottomFrame.rowconfigure(0, weight=1)
 
         self.leftFrame = tk.Frame(self.bottomFrame)
-        self.leftFrame.pack(side="left", fill="both", expand=True)
+        self.leftFrame.grid(row=0, column=0, sticky="nsew")
 
         self.rightFrame = tk.Frame(self.bottomFrame)
-        self.rightFrame.pack(side="right", fill="both", expand=True)
+        self.rightFrame.grid(row=0, column=1, sticky="nsew")
 
     def createButtons(self):
-        self.uploadButton = tk.Button(self.topFrame, text="Upload Graph File",width=20, height=2,  font=("Segoe UI", 14, "bold"),bg="#2d7ff9", fg="white", command=self.uploadMatrix)
-        self.uploadButton.pack(pady=10)
-
-        self.showInfoButton = tk.Button(self.topFrame, text="Show Graph Info",width=20, height=2,  font=("Segoe UI", 14, "bold"),bg="#2d7ff9", fg="white", command=self.showGraphInfo)
-        self.showInfoButton.pack(pady=10)
+        buttonFrame = tk.Frame(self.topFrame)
+        buttonFrame.pack()
+        self.uploadButton = tk.Button(buttonFrame, text="Upload Graph File",width=20, height=2, font=("Segoe UI", 14, "bold"),bg="#2d7ff9", fg="white", command=self.uploadMatrix)
+        self.uploadButton.pack(side="left", padx=10)
 
     def createTextBox(self):
         self.txtInfo = scrolledtext.ScrolledText(
-            self.root, width=80, height=20, font=("Segoe UI", 12)
+            self.leftFrame, width=100, height=20, font=("Segoe UI", 12)
             )
-        self.txtInfo.pack(pady=10)
+        self.txtInfo.pack(expand=True, padx=10, pady=10)
     
     def uploadMatrix(self):
         self.filepath = filedialog.askopenfilename(
@@ -55,6 +59,8 @@ class App:
     def loadGraph(self, filepath: str):
         self.graph = graphBuilder.buildGraph(filepath)
         print("Graph loaded successfully.")
+        graphVisualizer.drawGraph(self.graph, self.rightFrame)
+        self.showGraphInfo()
 
     def showGraphInfo(self):
         if self.graph:
@@ -66,6 +72,7 @@ class App:
         self.txtInfo.delete(1.0, tk.END)
         self.txtInfo.insert(tk.END, text)
         self.txtInfo.config(state="disabled")
+        
 
 root = tk.Tk()
 app = App(root)
