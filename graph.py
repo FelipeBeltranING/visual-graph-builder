@@ -67,6 +67,14 @@ class Graph():
             lines.append(f"({edge.source.name}, {edge.target.name}, {edge.weight})")
         return "\n".join(lines)
     
+    def adjacencyMatrixToString(self):
+        header = "     " + "  ".join(node.name for node in self.nodes)
+        rows = [header]
+        for i, node in enumerate(self.nodes):
+            row = "  ".join(f"{val:.1f}" for val in self.adjacencyMatrix[i])
+            rows.append(f"{node.name}:  {row}")
+        return "\n".join(rows)
+
     def graphInfo(self):
         header = f"Nodes: {len(self.nodes)}, Edges: {len(self.edges)}, Directed: {'yes' if self.isDirected else 'no'}"
-        return "\n\n".join([header, self.nodesToString(), self.edgesToString()])
+        return "\n\n".join([header, self.matrixToString(), self.nodesToString(), self.edgesToString()])
