@@ -3,7 +3,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 def buildNetworkxGraph(graph):
-    G = nx.Digraph() if graph.isDirected else nx.Graph()
+    G = nx.DiGraph() if graph.isDirected else nx.Graph()
     for node in graph.nodes:
         G.add_node(node.name)
     for edge in graph.edges:
