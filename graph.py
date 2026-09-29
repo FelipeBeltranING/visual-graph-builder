@@ -1,6 +1,9 @@
 #Definition of a graph in sapanish G=(V,A), in english G=(V,E)
 
 from dataclasses import dataclass, field
+from email import header
+from platform import node
+from matplotlib import lines
 import numpy as np
 
 #Clase abstracta de grafo
@@ -51,3 +54,19 @@ class Graph():
         print(f"Nodes: {len(self.nodes)}, Aristas: {len(self.edges)}, Directed:", "yes" if self.isDirected else "no")
         self.printNodes()
         self.printEdges()
+
+    def nodesToString(self):
+        lines = ["Nodes:"]
+        for node in self.nodes:
+            lines.append(node.name)
+        return "\n".join(lines)
+
+    def edgesToString(self):
+        lines = ["Edges:"]
+        for edge in self.edges:
+            lines.append(f"({edge.source.name}, {edge.target.name}, weight: {edge.weight})")
+        return "\n".join(lines)
+    
+    def graphInfo(self):
+        header = f"Nodes: {len(self.nodes)}, Edges: {len(self.edges)}, Directed: {'yes'     if self.isDirected else 'no'}"
+        return "\n\n".join([header, self.nodesToString(), self.edgesToString()])
