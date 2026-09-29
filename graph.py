@@ -64,9 +64,9 @@ class Graph():
     def edgesToString(self):
         lines = ["Edges:"]
         for edge in self.edges:
-            lines.append(f"({edge.source.name}, {edge.target.name}, weight: {edge.weight})")
+            lines.append(f"({edge.source.name}, {edge.target.name}, {edge.weight})")
         return "\n".join(lines)
     
     def graphInfo(self):
-        header = f"Nodes: {len(self.nodes)}, Edges: {len(self.edges)}, Directed: {'yes'     if self.isDirected else 'no'}"
+        header = f"Nodes: {len(self.nodes)}, Edges: {len(self.edges)}, Directed: {'yes' if self.isDirected else 'no'}"
         return "\n\n".join([header, self.nodesToString(), self.edgesToString()])
