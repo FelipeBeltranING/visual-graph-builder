@@ -10,20 +10,32 @@ def buildNetworkxGraph(graph):
         G.add_edge(edge.source.name, edge.target.name, weight=edge.weight)
     return G
 
-def drawGraph(graph, frame):
+def drawGraph(graph, frame, highlightPath=None):
     G = buildNetworkxGraph(graph)
 
-    fig = Figure(figsize=(5,5))
+    fig = Figure(figsize=(5, 5))
     ax = fig.add_subplot(111)
     pos = nx.spring_layout(G)
-    nx.draw(G,pos,ax=ax,with_labels=True, node_color="#2d7ff9",font_color="black", node_size=800, arrows=graph.isDirected)
 
-    edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax, font_size=10)
+    edgeColors = []
+    highlightEdges = set()
+    if highlightPath:
+        for i in range(len(highlightPath) - 1):
+            highlightEdges.add((highlightPath[i].name, highlightPath[i+1].name))
+
+    for u, v in G.edges():
+        edgeColors.append("red" if (u, v) in highlightEdges else "black")
+
+    nx.draw(G, pos, ax=ax, with_labels=True, node_color="#2d7ff9",
+            font_color="white", node_size=800, arrows=graph.isDirected,
+            edge_color=edgeColors, width=2)
+
+    edgeLabels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels, ax=ax, font_size=9)
 
     for widget in frame.winfo_children():
         widget.destroy()
-    
+
     canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True)
