@@ -6,10 +6,20 @@ def readFile(filepath: str):
         lines = file.readlines()
         return lines
 
+def validateMatrix(adjacencyMatrix, nodes):
+    n = adjacencyMatrix.shape[0]
+    
+    if adjacencyMatrix.shape[0] != adjacencyMatrix.shape[1]:
+        raise ValueError("La matriz debe ser cuadrada")
+    
+    if len(nodes) != n:
+        raise ValueError("El número de nodos no coincide con el tamaño de la matriz")
+
 def buildGraph(filepath: str):
     lines = readFile(filepath)
     nodes = loadNodesFromFile(lines)
     adjacencyMatrix = loadAdjacencyMatrixFromFile(lines)
+    validateMatrix(adjacencyMatrix, nodes)   # nuevo
     edges = loadEdgesFromAdjacencyMatrix(adjacencyMatrix, nodes)
     isDirected = isDirectedVerification(adjacencyMatrix)
     graph = Graph(nodes, edges, adjacencyMatrix, isDirected)
@@ -44,4 +54,3 @@ def isDirectedVerification(adjacencyMatrix: np.ndarray):
             if adjacencyMatrix[i,j] != adjacencyMatrix[j,i]:
                 return True
     return False
-
