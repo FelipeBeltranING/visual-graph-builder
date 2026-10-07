@@ -139,6 +139,24 @@ class Graph():
                 raise ValueError("El grafo tiene un ciclo de peso negativo")
 
         return self._reconstructPath(previous, start, end), distances[end]
+    
+    def conceptsToString(self):
+        lines = ["Nodos adyacentes:"]
+        for node in self.nodes:
+            adj = ", ".join(n.name for n in self.adjacentTo(node))
+            lines.append(f"  {node.name} -> [{adj}]")
+    
+        lines.append(f"\n¿Tiene ciclo? {'Sí' if self.hasCycle() else 'No'}")
+    
+        if len(self.nodes) >= 2:
+            path = self.findPath(self.nodes[0], self.nodes[-1])
+            if path:
+                pathStr = " -> ".join(n.name for n in path)
+                lines.append(f"Camino de {self.nodes[0].name} a {self.nodes[-1].name}: {pathStr}")
+            else:
+                lines.append(f"No hay camino de {self.nodes[0].name} a {self.nodes[-1].name}")
+    
+        return "\n".join(lines)
 
     def printNodes(self):
         print("Nodes:")
