@@ -1,6 +1,10 @@
+from cProfile import label
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
+
+from matplotlib import container
+from matplotlib.pyplot import title
 import graphBuilder
 import graphVisualizer
 
@@ -19,26 +23,41 @@ class App:
 
     def createLayout(self):
         self.topFrame = tk.Frame(self.root)
-        self.topFrame.pack(side="top", fill="x",pady=10)
+        self.topFrame.pack(side="top", fill="x", pady=10)
 
         self.bottomFrame = tk.Frame(self.root)
         self.bottomFrame.pack(side="bottom", fill="both", expand=True)
-        
+
         self.bottomFrame.columnconfigure(0, weight=1)
         self.bottomFrame.columnconfigure(1, weight=1)
+        self.bottomFrame.columnconfigure(2, weight=1)
+        self.bottomFrame.columnconfigure(3, weight=1)
         self.bottomFrame.rowconfigure(0, weight=1)
 
         self.leftFrame = tk.Frame(self.bottomFrame)
         self.leftFrame.grid(row=0, column=0, sticky="nsew")
 
-        self.rightFrame = tk.Frame(self.bottomFrame)
-        self.rightFrame.grid(row=0, column=1, sticky="nsew")
+        self.originalGraphFrame = self._makeGraphPanel(self.bottomFrame, "Grafo original", col=1)
+        self.dijkstraFrame = self._makeGraphPanel(self.bottomFrame, "Dijkstra", col=2)
+        self.bellmanFrame = self._makeGraphPanel(self.bottomFrame, "Bellman-Ford", col=3)
+
+    def _makeGraphPanel(self, parent, title, col):
+        container = tk.Frame(parent)
+        container.grid(row=0, column=col, sticky="nsew")
+
+        label = tk.Label(container, text=title, font=("Segoe UI", 11, "bold"))
+        label.pack(side="top", pady=5)
+
+        canvasFrame = tk.Frame(container)
+        canvasFrame.pack(fill="both", expand=True)
+
+        return canvasFrame   # este es el frame donde se dibuja el grafo
 
     def createButtons(self):
         buttonFrame = tk.Frame(self.topFrame)
         buttonFrame.pack()
 
-        self.uploadButton = tk.Button(buttonFrame, text="Upload Graph File", width=20, height=2, font=("Segoe UI", 14, "bold"), bg="#2d7ff9", fg="white", command=self.uploadMatrix)
+        self.uploadButton = tk.Button(buttonFrame, text="Upload Graph File", width=18, height=2, font=("Segoe UI", 14, "bold"), bg="#2d7ff9", fg="white", command=self.uploadMatrix)
         self.uploadButton.pack(side="left", padx=10)
 
         tk.Label(buttonFrame, text="Origen:", font=("Segoe UI", 12)).pack(side="left", padx=(20, 5))
@@ -56,26 +75,41 @@ class App:
         self.bellmanButton.pack(side="left", padx=10)
 
     def createTextBox(self):
+        tk.Label(self.leftFrame, text="Información del grafo", font=("Segoe UI", 12, "bold")).pack(pady=(10, 0))
         self.txtInfo = scrolledtext.ScrolledText(
-            self.leftFrame, width=50, height=30, font=("Segoe UI", 15)
-            )
-        self.txtInfo.pack(padx=10, pady=10)
+            self.leftFrame, width=50, height=22, font=("Segoe UI", 12)
+        )
+        self.txtInfo.pack(padx=10, pady=5)
+
+        tk.Label(self.leftFrame, text="Resultado del algoritmo", font=("Segoe UI", 12, "bold")).pack(pady=(10, 0))
+        self.txtResult = scrolledtext.ScrolledText(
+            self.leftFrame, width=50, height=6, font=("Segoe UI", 12)
+        )
+        self.txtResult.pack(padx=10, pady=5)
 
     def findNodeByName(self, name):
         for node in self.graph.nodes:
             if node.name == name:
                 return node
         return None
+    
+    def loadGraph(self, filepath: str):
+        try:
+            self.graph = graphBuilder.buildGraph(filepath)
+            graphVisualizer.drawGraph(self.graph, self.originalGraphFrame)
+            self.showGraphInfo()
+        except ValueError as e:
+            self.showText(f"Error al cargar el archivo:\n{e}")
 
     def runDijkstra(self):
-        self._runShortestPath(self.graph.dijkstra, "Dijkstra")
+        self._runShortestPath(self.graph.dijkstra, "Dijkstra", self.dijkstraFrame)
 
     def runBellmanFord(self):
-        self._runShortestPath(self.graph.bellmanFord, "Bellman-Ford")
+        self._runShortestPath(self.graph.bellmanFord, "Bellman-Ford", self.bellmanFrame)  # si agregas el 3er panel
 
-    def _runShortestPath(self, algorithm, algorithmName):
+    def _runShortestPath(self, algorithm, algorithmName, targetFrame):
         if not self.graph:
-            self.showText("Primero carga un grafo.")
+            self.showResult("Primero carga un grafo.")
             return
 
         startName = self.originEntry.get().strip()
@@ -84,22 +118,23 @@ class App:
         end = self.findNodeByName(endName)
 
         if not start or not end:
-            self.showText(f"Nodo origen o destino inválido. Nodos disponibles: {[n.name for n in self.graph.nodes]}")
+            self.showResult(f"Nodo origen o destino inválido. Nodos disponibles: {[n.name for n in self.graph.nodes]}")
             return
 
         try:
             path, cost = algorithm(start, end)
         except ValueError as e:
-            self.showText(str(e))
+            self.showResult(str(e))
             return
 
         if path is None:
-            self.showText(f"No existe camino de {startName} a {endName}.")
+            self.showResult(f"No existe camino de {startName} a {endName}.")
             return
 
         pathStr = " -> ".join(n.name for n in path)
-        self.showText(f"{algorithmName}\nRuta: {pathStr}\nCosto total: {cost}")
-        graphVisualizer.drawGraph(self.graph, self.rightFrame, highlightPath=path)
+        self.showResult(f"{algorithmName}\nRuta: {pathStr}\nCosto total: {cost}")
+        graphVisualizer.drawGraph(self.graph, targetFrame, highlightPath=path)
+
     
     def uploadMatrix(self):
         self.filepath = filedialog.askopenfilename(
@@ -111,17 +146,8 @@ class App:
         else:
             print("No file selected.")
 
-    def loadGraph(self, filepath: str):
-        try:
-            self.graph = graphBuilder.buildGraph(filepath)
-            graphVisualizer.drawGraph(self.graph, self.rightFrame)
-            self.showGraphInfo()
-        except ValueError as e:
-            self.showText(f"Error al cargar el archivo:\n{e}")
-
     def showGraphInfo(self):
         if self.graph:
-            self.graph.printGraph()
             self.showText(self.graph.graphInfo())
 
     def showText(self, text: str):
@@ -130,24 +156,11 @@ class App:
         self.txtInfo.insert(tk.END, text)
         self.txtInfo.config(state="disabled")
 
-    def conceptsToString(self):
-        lines = ["Nodos adyacentes:"]
-        for node in self.nodes:
-            adj = ", ".join(n.name for n in self.adjacentTo(node))
-            lines.append(f"  {node.name} -> [{adj}]")
-    
-        lines.append(f"\n¿Tiene ciclo? {'Sí' if self.hasCycle() else 'No'}")
-    
-        if len(self.nodes) >= 2:
-            path = self.findPath(self.nodes[0], self.nodes[-1])
-            if path:
-                pathStr = " -> ".join(n.name for n in path)
-                lines.append(f"Camino de {self.nodes[0].name} a {self.nodes[-1].name}: {pathStr}")
-            else:
-                lines.append(f"No hay camino de {self.nodes[0].name} a {self.nodes[-1].name}")
-    
-        return "\n".join(lines)
-        
+    def showResult(self, text: str):
+        self.txtResult.config(state="normal")
+        self.txtResult.delete(1.0, tk.END)
+        self.txtResult.insert(tk.END, text)
+        self.txtResult.config(state="disabled")    
 
 root = tk.Tk()
 app = App(root)
