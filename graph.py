@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from email import header
+from os import path
 from platform import node
 import queue
 from matplotlib import lines
@@ -85,6 +86,59 @@ class Graph():
                 if dfs(node, None):
                     return True
         return False
+    
+    def dijkstra(self, start, end):
+        distances = {node: float('inf') for node in self.nodes}
+        previous = {node: None for node in self.nodes}
+        distances[start] = 0
+        unvisited = set(self.nodes)
+
+        while unvisited:
+            current = min(unvisited, key=lambda node: distances[node])
+            unvisited.remove(current)
+
+            if current == end:
+                break
+            if distances[current] == float('inf'):
+                break   # los nodos restantes son inalcanzables
+
+            for edge in self.edges:
+                if edge.source == current and edge.target in unvisited:
+                    newDist = distances[current] + edge.weight
+                    if newDist < distances[edge.target]:
+                        distances[edge.target] = newDist
+                        previous[edge.target] = current
+
+        return self._reconstructPath(previous, start, end), distances[end]
+    
+    def _reconstructPath(self, previous, start, end):
+        if previous[end] is None and end != start:
+            return None   # no hay camino
+    
+        path = [end]
+        while path[-1] != start:
+            path.append(previous[path[-1]])
+        path.reverse()
+        return path
+    
+    def bellmanFord(self, start, end):
+        distances = {node: float('inf') for node in self.nodes}
+        previous = {node: None for node in self.nodes}
+        distances[start] = 0
+    
+        n = len(self.nodes)
+        for _ in range(n - 1):
+            for edge in self.edges:
+                if distances[edge.source] + edge.weight < distances[edge.target]:
+                    distances[edge.target] = distances[edge.source] + edge.weight
+                    previous[edge.target] = edge.source
+
+    # una iteración extra para detectar ciclos de peso negativo
+        for edge in self.edges:
+            if distances[edge.source] + edge.weight < distances[edge.target]:
+                raise ValueError("El grafo tiene un ciclo de peso negativo")
+
+        return self._reconstructPath(previous, start, end), distances[end]
 
     def printNodes(self):
         print("Nodes:")
