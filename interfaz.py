@@ -57,10 +57,12 @@ class App:
             print("No file selected.")
 
     def loadGraph(self, filepath: str):
-        self.graph = graphBuilder.buildGraph(filepath)
-        print("Graph loaded successfully.")
-        graphVisualizer.drawGraph(self.graph, self.rightFrame)
-        self.showGraphInfo()
+        try:
+            self.graph = graphBuilder.buildGraph(filepath)
+            graphVisualizer.drawGraph(self.graph, self.rightFrame)
+            self.showGraphInfo()
+        except ValueError as e:
+            self.showText(f"Error al cargar el archivo:\n{e}")
 
     def showGraphInfo(self):
         if self.graph:
@@ -72,6 +74,24 @@ class App:
         self.txtInfo.delete(1.0, tk.END)
         self.txtInfo.insert(tk.END, text)
         self.txtInfo.config(state="disabled")
+
+    def conceptsToString(self):
+        lines = ["Nodos adyacentes:"]
+        for node in self.nodes:
+            adj = ", ".join(n.name for n in self.adjacentTo(node))
+            lines.append(f"  {node.name} -> [{adj}]")
+    
+        lines.append(f"\n¿Tiene ciclo? {'Sí' if self.hasCycle() else 'No'}")
+    
+        if len(self.nodes) >= 2:
+            path = self.findPath(self.nodes[0], self.nodes[-1])
+            if path:
+                pathStr = " -> ".join(n.name for n in path)
+                lines.append(f"Camino de {self.nodes[0].name} a {self.nodes[-1].name}: {pathStr}")
+            else:
+                lines.append(f"No hay camino de {self.nodes[0].name} a {self.nodes[-1].name}")
+    
+        return "\n".join(lines)
         
 
 root = tk.Tk()
